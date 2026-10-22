@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Office ID Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #eef3f8;
+      font-family: Arial, sans-serif;
+      color: #172b4d;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 28px #17324d18;
+    }
+
+    .logo {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: #e3edff;
+      color: #2459b5;
+      font-size: 26px;
+      margin-bottom: 18px;
+    }
+
+    h1 { font-size: 25px; margin: 0 0 8px; }
+    p { color: #64748b; line-height: 1.5; }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin: 18px 0 7px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: 2px solid #93b4f5;
+      border-color: #2459b5;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 13px;
+      border: 0;
+      border-radius: 8px;
+      background: #2459b5;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: .6; cursor: wait; }
+
+    #status {
+      margin-top: 16px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 12px;
+      text-align: center;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo" aria-hidden="true">▦</div>
+    <h1>Office ID Portal</h1>
+    <p>Authorized employees can submit their Office ID below.</p>
+
+    <form id="officeForm">
+      <label for="accessCode">Employee access code</label>
+      <input
+        id="accessCode"
+        name="accessCode"
+        type="password"
+        autocomplete="off"
+        required
+        maxlength="80"
+        placeholder="Enter your access code">
+
+      <label for="officeId">Office ID</label>
+      <input
+        id="officeId"
+        name="officeId"
+        type="text"
+        required
+        minlength="2"
+        maxlength="40"
+        pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,39}"
+        title="Use 2–40 letters, numbers, underscores or hyphens."
+        placeholder="Example: OFF-1024">
+
+      <button id="submitBtn" type="submit">Submit Office ID</button>
+      <div id="status" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="footer">Office submission system</div>
+  </main>
+
+  <script>
+    const form = document.getElementById("officeForm");
+    const button = document.getElementById("submitBtn");
+    const statusBox = document.getElementById("status");
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      if (!form.reportValidity()) return;
+
+      button.disabled = true;
+      statusBox.textContent = "Submitting…";
+
+      const data = {
+        accessCode: document.getElementById("accessCode").value.trim(),
+        officeId: document.getElementById("officeId").value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          statusBox.textContent = result.message;
+          statusBox.style.color = "#167044";
+          form.reset();
+          button.disabled = false;
+        })
+        .withFailureHandler(function(error) {
+          statusBox.textContent =
+            error && error.message
+              ? error.message
+              : "Submission failed. Please try again.";
+          statusBox.style.color = "#b42318";
+          button.disabled = false;
+        })
+        .submitOfficeId(data);
+    });
+  </script>
+</body>
+</html>
